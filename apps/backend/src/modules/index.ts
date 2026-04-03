@@ -1,0 +1,32 @@
+import { Router } from "express";
+import { authRouter } from "@/modules/auth/auth.routes";
+import { shopsRouter } from "@/modules/shops/shops.routes";
+import { usersRouter } from "@/modules/users/users.routes";
+import { menuRouter } from "@/modules/menu/menu.routes";
+import { modifiersRouter } from "@/modules/modifiers/modifiers.routes";
+import { ordersRouter } from "@/modules/orders/orders.routes";
+import { reportsRouter } from "@/modules/reports/reports.routes";
+import { printersRouter } from "@/modules/printers/printers.routes";
+import { settingsRouter } from "@/modules/settings/settings.routes";
+import { logsRouter } from "@/modules/logs/logs.routes";
+import { saasRouter } from "@/modules/saas/saas.routes";
+import { exportRouter } from "@/modules/export/export.routes";
+import { systemRouter } from "@/modules/system/system.routes";
+import { futureRouter } from "@/modules/future/placeholders.routes";
+
+export const modulesRouter = Router();
+
+modulesRouter.use("/auth", authRouter);
+modulesRouter.use("/shops", shopsRouter);
+modulesRouter.use("/users", usersRouter);
+modulesRouter.use("/menu", menuRouter);
+modulesRouter.use("/modifiers", modifiersRouter);
+modulesRouter.use("/orders", ordersRouter);
+modulesRouter.use("/reports", reportsRouter);
+modulesRouter.use("/print", printersRouter);
+modulesRouter.use("/settings", settingsRouter);
+modulesRouter.use("/logs", logsRouter);
+modulesRouter.use("/saas", saasRouter);
+modulesRouter.use("/export", exportRouter);
+modulesRouter.use("/system", systemRouter);
+modulesRouter.use("/future", futureRouter);
