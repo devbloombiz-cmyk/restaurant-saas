@@ -1,0 +1,30 @@
+{
+  "id": "restaurant-saas-local-env",
+  "name": "Restaurant SaaS Local",
+  "values": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api", "enabled": true },
+    { "key": "accessToken", "value": "", "enabled": true },
+    { "key": "refreshToken", "value": "", "enabled": true },
+    { "key": "tenantId", "value": "platform", "enabled": true },
+    { "key": "shopId", "value": "platform", "enabled": true },
+    { "key": "superAdminEmail", "value": "superadmin@restaurant-saas.local", "enabled": true },
+    { "key": "superAdminPassword", "value": "SuperAdmin@123", "enabled": true },
+    { "key": "shopAdminEmail", "value": "admin@tenantone.com", "enabled": true },
+    { "key": "shopAdminPassword", "value": "Admin@1234", "enabled": true },
+    { "key": "cashierEmail", "value": "cashier1@tenantone.com", "enabled": true },
+    { "key": "cashierPassword", "value": "Cashier@1234", "enabled": true },
+    { "key": "shopMongoId", "value": "", "enabled": true },
+    { "key": "categoryId", "value": "", "enabled": true },
+    { "key": "itemId", "value": "", "enabled": true },
+    { "key": "modifierId", "value": "", "enabled": true },
+    { "key": "orderId", "value": "", "enabled": true },
+    { "key": "orderNumber", "value": "", "enabled": true },
+    { "key": "cashierUserId", "value": "", "enabled": true },
+    { "key": "tenantMongoId", "value": "", "enabled": true },
+    { "key": "backupFileName", "value": "", "enabled": true },
+    { "key": "logId", "value": "", "enabled": true }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2026-04-03T00:00:00.000Z",
+  "_postman_exported_using": "GPT-5.3-Codex"
+}

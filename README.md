@@ -54,6 +54,10 @@ restaurant-saas/
 - Phase 1 implementation details: `docs/phase-1-foundation.md`
 - Phase 2 backend foundation: `docs/phase-2-backend-foundation.md`
 - Phase 3 and 4 business modules: `docs/phase-3-4-business-modules.md`
+- Phase 5 and 6 operations and hardening: `docs/phase-5-6-operations-saas-hardening.md`
+- Phase 7 and 8 enterprise stability: `docs/phase-7-8-enterprise-stability.md`
+- Complete Postman E2E testing guide: `docs/postman-e2e-testing-guide.md`
+- Postman environment template: `docs/postman-environment-template.json`
 - Installation command reference: `scripts/install-commands.md`
 - PM2 config: `scripts/pm2/ecosystem.config.cjs`
 - Nginx sample config: `scripts/nginx/restaurant-saas.conf`
