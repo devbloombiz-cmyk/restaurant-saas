@@ -1,6 +1,6 @@
 import { apiClient } from "@/services/apiClient";
 import type { ApiResponse } from "@/types/api";
-import type { MenuCategory, MenuItem } from "@/types/domain";
+import type { InventoryItem, MenuCategory, MenuItem } from "@/types/domain";
 
 export async function fetchCategories(): Promise<MenuCategory[]> {
   const { data } = await apiClient.get<ApiResponse<MenuCategory[]>>("/menu/categories");
@@ -33,6 +33,8 @@ export async function createItem(payload: {
   description?: string;
   modifierEnabled?: boolean;
   isAvailable?: boolean;
+  stockQty?: number;
+  lowStockThreshold?: number;
   image?: string;
   sortOrder?: number;
 }): Promise<MenuItem> {
@@ -49,6 +51,8 @@ export async function updateItem(
     description: string;
     modifierEnabled: boolean;
     isAvailable: boolean;
+      stockQty: number;
+      lowStockThreshold: number;
     image: string;
     sortOrder: number;
   }>
@@ -59,4 +63,17 @@ export async function updateItem(
 
 export async function deleteItem(id: string): Promise<void> {
   await apiClient.delete(`/menu/items/${id}`);
+}
+
+export async function fetchInventory(): Promise<InventoryItem[]> {
+  const { data } = await apiClient.get<ApiResponse<InventoryItem[]>>("/menu/inventory");
+  return data.data;
+}
+
+export async function updateInventory(
+  id: string,
+  payload: Partial<{ stockQty: number; stockDelta: number; lowStockThreshold: number; isAvailable: boolean }>
+): Promise<InventoryItem> {
+  const { data } = await apiClient.patch<ApiResponse<InventoryItem>>(`/menu/inventory/${id}`, payload);
+  return data.data;
 }

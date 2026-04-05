@@ -97,6 +97,8 @@ export class MenuService {
       description: typeof body.description === "string" ? body.description : "",
       modifierEnabled: typeof body.modifierEnabled === "boolean" ? body.modifierEnabled : false,
       isAvailable: typeof body.isAvailable === "boolean" ? body.isAvailable : true,
+      stockQty: typeof body.stockQty === "number" ? body.stockQty : 9999,
+      lowStockThreshold: typeof body.lowStockThreshold === "number" ? body.lowStockThreshold : 10,
       image: typeof body.image === "string" ? body.image : "",
       sortOrder: typeof body.sortOrder === "number" ? body.sortOrder : 0
     });
@@ -138,6 +140,10 @@ export class MenuService {
     return item;
   }
 
+  async getInventory(context: RequestContext) {
+    return this.menuRepository.findInventoryItems(context.tenantId, context.shopId);
+  }
+
   async updateItem(context: RequestContext, id: string, body: Record<string, unknown>) {
     const item = await this.menuRepository.updateItem(id, context.tenantId, context.shopId, body);
 
@@ -168,6 +174,52 @@ export class MenuService {
     cacheService.clear(`menu-items:${context.tenantId}:${context.shopId}`);
 
     return item;
+  }
+
+  async updateInventoryItem(context: RequestContext, id: string, body: Record<string, unknown>) {
+    const existing = await this.menuRepository.findItemById(id, context.tenantId, context.shopId);
+
+    if (!existing) {
+      throw new ApiError(404, "Menu item not found");
+    }
+
+    const currentStock = Number(existing.stockQty ?? 0);
+    const hasAbsolute = typeof body.stockQty === "number";
+    const hasDelta = typeof body.stockDelta === "number";
+    const nextStock = hasAbsolute ? Number(body.stockQty) : hasDelta ? Math.max(0, currentStock + Number(body.stockDelta)) : currentStock;
+
+    const payload: Record<string, unknown> = {
+      stockQty: nextStock
+    };
+
+    if (typeof body.lowStockThreshold === "number") {
+      payload.lowStockThreshold = body.lowStockThreshold;
+    }
+
+    if (typeof body.isAvailable === "boolean") {
+      payload.isAvailable = body.isAvailable;
+    } else {
+      payload.isAvailable = nextStock > 0;
+    }
+
+    const updated = await this.menuRepository.updateInventoryItem(id, context.tenantId, context.shopId, payload);
+
+    if (!updated) {
+      throw new ApiError(404, "Menu item not found");
+    }
+
+    await this.auditLogService.log({
+      tenantId: context.tenantId,
+      shopId: context.shopId,
+      userId: context.userId,
+      action: "menu_inventory_updated",
+      module: "menu",
+      metadata: { itemId: updated.id, payload }
+    });
+
+    cacheService.clear(`menu-items:${context.tenantId}:${context.shopId}`);
+
+    return updated;
   }
 
   async deleteItem(context: RequestContext, id: string) {

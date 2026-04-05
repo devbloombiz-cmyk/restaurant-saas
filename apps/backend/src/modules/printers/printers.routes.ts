@@ -9,9 +9,9 @@ import { printOrderParamSchema, updatePrinterSettingsSchema } from "@/validators
 export const printersRouter = Router();
 const printersController = new PrintersController();
 
-printersRouter.use(requireAuth, authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN, USER_ROLES.CASHIER]));
+printersRouter.use(requireAuth);
 
-printersRouter.post("/kot/:orderId", validateRequest(printOrderParamSchema), asyncHandler(printersController.printKot));
-printersRouter.post("/reprint-last", asyncHandler(printersController.reprintLast));
-printersRouter.get("/settings", asyncHandler(printersController.getSettings));
-printersRouter.patch("/settings", validateRequest(updatePrinterSettingsSchema), asyncHandler(printersController.updateSettings));
+printersRouter.post("/kot/:orderId", authorize([USER_ROLES.CASHIER]), validateRequest(printOrderParamSchema), asyncHandler(printersController.printKot));
+printersRouter.post("/reprint-last", authorize([USER_ROLES.CASHIER]), asyncHandler(printersController.reprintLast));
+printersRouter.get("/settings", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN, USER_ROLES.CASHIER]), asyncHandler(printersController.getSettings));
+printersRouter.patch("/settings", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]), validateRequest(updatePrinterSettingsSchema), asyncHandler(printersController.updateSettings));

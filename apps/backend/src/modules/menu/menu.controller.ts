@@ -36,6 +36,11 @@ export class MenuController {
     sendSuccess(res, "Menu items fetched", data);
   };
 
+  getInventory = async (req: Request, res: Response): Promise<void> => {
+    const data = await this.menuService.getInventory(getTenantContext(req.context));
+    sendSuccess(res, "Inventory fetched", data);
+  };
+
   getItemById = async (req: Request, res: Response): Promise<void> => {
     const data = await this.menuService.getItemById(getTenantContext(req.context), String(req.params.id));
     sendSuccess(res, "Menu item fetched", data);
@@ -44,6 +49,11 @@ export class MenuController {
   updateItem = async (req: Request, res: Response): Promise<void> => {
     const data = await this.menuService.updateItem(getTenantContext(req.context), String(req.params.id), req.body);
     sendSuccess(res, "Menu item updated", data);
+  };
+
+  updateInventoryItem = async (req: Request, res: Response): Promise<void> => {
+    const data = await this.menuService.updateInventoryItem(getTenantContext(req.context), String(req.params.id), req.body);
+    sendSuccess(res, "Inventory updated", data);
   };
 
   deleteItem = async (req: Request, res: Response): Promise<void> => {

@@ -31,6 +31,8 @@ export class PrintersService {
       orderType: order.orderType,
       paymentMode: order.paymentMode,
       createdAt: orderCreatedAt ? new Date(orderCreatedAt).toLocaleString() : new Date().toLocaleString(),
+      paperWidth: settings?.paperWidth === 58 ? 58 : 80,
+      feedBeforeCutLines: typeof settings?.feedBeforeCutLines === "number" ? settings.feedBeforeCutLines : 3,
       items: (order.items as Array<Record<string, unknown>>).map((item) => ({
         name: String(item.name ?? "Item"),
         qty: Number(item.qty ?? 1),
@@ -55,6 +57,8 @@ export class PrintersService {
       orderNumber: order.orderNumber,
       copies: copies ?? settings?.copies ?? 1,
       paperWidth: settings?.paperWidth ?? 80,
+      cutMode: settings?.cutMode ?? "partial",
+      feedBeforeCutLines: typeof settings?.feedBeforeCutLines === "number" ? settings.feedBeforeCutLines : 3,
       html
     };
   }
@@ -82,6 +86,8 @@ export class PrintersService {
         paperWidth: 80,
         autoPrint: true,
         copies: 1,
+        cutMode: "partial",
+        feedBeforeCutLines: 3,
         isActive: true
       };
     }

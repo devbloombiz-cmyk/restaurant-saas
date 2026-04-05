@@ -2,11 +2,13 @@ import { Router } from "express";
 import { AuthController } from "@/modules/auth/auth.controller";
 import { validateRequest } from "@/middlewares/validateRequest";
 import {
+	loginCredentialsSchema,
 	loginSchema,
 	logoutSchema,
 	refreshTokenSchema,
 	registerCashierSchema,
-	registerShopAdminSchema
+	registerShopAdminSchema,
+	sessionSchema
 } from "@/validators/auth.schema";
 import { requireAuth, authorize } from "@/middlewares/auth";
 import { USER_ROLES } from "@shared/types/roles";
@@ -18,6 +20,7 @@ export const authRouter = Router();
 const authController = new AuthController();
 
 authRouter.post("/login", loginThrottle, validateRequest(loginSchema), asyncHandler(authController.login));
+authRouter.post("/login-credentials", loginThrottle, validateRequest(loginCredentialsSchema), asyncHandler(authController.loginWithCredentials));
 authRouter.post("/refresh-token", validateRequest(refreshTokenSchema), asyncHandler(authController.refreshToken));
 authRouter.post("/logout", validateRequest(logoutSchema), asyncHandler(authController.logout));
 authRouter.post(
@@ -35,3 +38,4 @@ authRouter.post(
 	asyncHandler(authController.registerCashier)
 );
 authRouter.get("/profile", requireAuth, asyncHandler(authController.profile));
+authRouter.get("/session", requireAuth, validateRequest(sessionSchema), asyncHandler(authController.session));

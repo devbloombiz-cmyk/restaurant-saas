@@ -8,6 +8,7 @@ import {
   createMenuCategorySchema,
   createMenuItemSchema,
   menuParamIdSchema,
+  updateInventoryItemSchema,
   updateMenuCategorySchema,
   updateMenuItemSchema
 } from "@/validators/menu.schema";
@@ -15,15 +16,17 @@ import {
 export const menuRouter = Router();
 const menuController = new MenuController();
 
-menuRouter.use(requireAuth, authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]));
+menuRouter.use(requireAuth);
 
-menuRouter.post("/categories", validateRequest(createMenuCategorySchema), asyncHandler(menuController.createCategory));
-menuRouter.get("/categories", asyncHandler(menuController.getCategories));
-menuRouter.patch("/categories/:id", validateRequest(updateMenuCategorySchema), asyncHandler(menuController.updateCategory));
-menuRouter.delete("/categories/:id", validateRequest(menuParamIdSchema), asyncHandler(menuController.deleteCategory));
+menuRouter.post("/categories", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]), validateRequest(createMenuCategorySchema), asyncHandler(menuController.createCategory));
+menuRouter.get("/categories", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN, USER_ROLES.CASHIER]), asyncHandler(menuController.getCategories));
+menuRouter.patch("/categories/:id", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]), validateRequest(updateMenuCategorySchema), asyncHandler(menuController.updateCategory));
+menuRouter.delete("/categories/:id", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]), validateRequest(menuParamIdSchema), asyncHandler(menuController.deleteCategory));
 
-menuRouter.post("/items", validateRequest(createMenuItemSchema), asyncHandler(menuController.createItem));
-menuRouter.get("/items", asyncHandler(menuController.getItems));
-menuRouter.get("/items/:id", validateRequest(menuParamIdSchema), asyncHandler(menuController.getItemById));
-menuRouter.patch("/items/:id", validateRequest(updateMenuItemSchema), asyncHandler(menuController.updateItem));
-menuRouter.delete("/items/:id", validateRequest(menuParamIdSchema), asyncHandler(menuController.deleteItem));
+menuRouter.post("/items", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]), validateRequest(createMenuItemSchema), asyncHandler(menuController.createItem));
+menuRouter.get("/items", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN, USER_ROLES.CASHIER]), asyncHandler(menuController.getItems));
+menuRouter.get("/inventory", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]), asyncHandler(menuController.getInventory));
+menuRouter.get("/items/:id", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN, USER_ROLES.CASHIER]), validateRequest(menuParamIdSchema), asyncHandler(menuController.getItemById));
+menuRouter.patch("/items/:id", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]), validateRequest(updateMenuItemSchema), asyncHandler(menuController.updateItem));
+menuRouter.patch("/inventory/:id", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]), validateRequest(updateInventoryItemSchema), asyncHandler(menuController.updateInventoryItem));
+menuRouter.delete("/items/:id", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]), validateRequest(menuParamIdSchema), asyncHandler(menuController.deleteItem));

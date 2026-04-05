@@ -3,14 +3,14 @@ import { useToastStore } from "@/store/toastStore";
 
 function toastClass(type: "success" | "error" | "info"): string {
   if (type === "success") {
-    return "border-emerald-200 bg-emerald-50 text-emerald-900";
+    return "border-emerald-200 bg-emerald-50/95 text-emerald-900";
   }
 
   if (type === "error") {
-    return "border-rose-200 bg-rose-50 text-rose-900";
+    return "border-rose-200 bg-rose-50/95 text-rose-900";
   }
 
-  return "border-sky-200 bg-sky-50 text-sky-900";
+  return "border-sky-200 bg-sky-50/95 text-sky-900";
 }
 
 export function ToastViewport() {
@@ -30,7 +30,7 @@ export function ToastViewport() {
       {toasts.map((toast) => (
         <article
           key={toast.id}
-          className={`pointer-events-auto rounded-lg border px-3 py-2 text-sm shadow ${toastClass(toast.type)}`}
+          className={`pointer-events-auto rounded-xl border px-3 py-2 text-sm shadow-lg backdrop-blur ${toastClass(toast.type)}`}
           role="status"
         >
           {toast.message}

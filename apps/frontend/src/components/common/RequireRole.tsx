@@ -11,11 +11,11 @@ export function RequireRole({ allowedRoles, children }: { allowedRoles: UserRole
   const token = localStorage.getItem("accessToken");
 
   if (!token || !tenantId || !shopId) {
-    return <Navigate to="/health" replace state={{ from: location.pathname }} />;
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
   if (!allowedRoles.includes(currentRole)) {
-    return <Navigate to="/pos" replace state={{ from: location.pathname }} />;
+    return <Navigate to="/" replace state={{ from: location.pathname }} />;
   }
 
   return children;

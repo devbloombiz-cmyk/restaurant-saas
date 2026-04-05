@@ -9,10 +9,10 @@ import { createOrderSchema, orderParamIdSchema, updateOrderSchema } from "@/vali
 export const ordersRouter = Router();
 const ordersController = new OrdersController();
 
-ordersRouter.use(requireAuth, authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN, USER_ROLES.CASHIER]));
+ordersRouter.use(requireAuth);
 
-ordersRouter.post("/", validateRequest(createOrderSchema), asyncHandler(ordersController.createOrder));
-ordersRouter.get("/", asyncHandler(ordersController.getOrders));
-ordersRouter.get("/daily-summary", asyncHandler(ordersController.dailySummary));
-ordersRouter.get("/:id", validateRequest(orderParamIdSchema), asyncHandler(ordersController.getOrderById));
-ordersRouter.patch("/:id", validateRequest(updateOrderSchema), asyncHandler(ordersController.updateOrder));
+ordersRouter.post("/", authorize([USER_ROLES.CASHIER]), validateRequest(createOrderSchema), asyncHandler(ordersController.createOrder));
+ordersRouter.get("/", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN, USER_ROLES.CASHIER]), asyncHandler(ordersController.getOrders));
+ordersRouter.get("/daily-summary", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]), asyncHandler(ordersController.dailySummary));
+ordersRouter.get("/:id", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN, USER_ROLES.CASHIER]), validateRequest(orderParamIdSchema), asyncHandler(ordersController.getOrderById));
+ordersRouter.patch("/:id", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]), validateRequest(updateOrderSchema), asyncHandler(ordersController.updateOrder));

@@ -30,6 +30,8 @@ export const createMenuItemSchema = z.object({
     description: z.string().optional(),
     modifierEnabled: z.boolean().optional(),
     isAvailable: z.boolean().optional(),
+    stockQty: z.number().int().nonnegative().optional(),
+    lowStockThreshold: z.number().int().nonnegative().optional(),
     image: z.string().optional(),
     sortOrder: z.number().int().optional()
   }),
@@ -46,6 +48,8 @@ export const updateMenuItemSchema = z.object({
       description: z.string().optional(),
       modifierEnabled: z.boolean().optional(),
       isAvailable: z.boolean().optional(),
+      stockQty: z.number().int().nonnegative().optional(),
+      lowStockThreshold: z.number().int().nonnegative().optional(),
       image: z.string().optional(),
       sortOrder: z.number().int().optional()
     })
@@ -56,6 +60,19 @@ export const updateMenuItemSchema = z.object({
 
 export const menuParamIdSchema = z.object({
   body: z.object({}).optional(),
+  params: z.object({ id: z.string().min(1) }),
+  query: z.object({}).optional()
+});
+
+export const updateInventoryItemSchema = z.object({
+  body: z
+    .object({
+      stockQty: z.number().int().nonnegative().optional(),
+      stockDelta: z.number().int().optional(),
+      lowStockThreshold: z.number().int().nonnegative().optional(),
+      isAvailable: z.boolean().optional()
+    })
+    .refine((v) => Object.keys(v).length > 0, "At least one field is required"),
   params: z.object({ id: z.string().min(1) }),
   query: z.object({}).optional()
 });

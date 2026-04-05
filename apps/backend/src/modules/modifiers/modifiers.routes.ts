@@ -9,9 +9,9 @@ import { createModifierSchema, modifierParamIdSchema, updateModifierSchema } fro
 export const modifiersRouter = Router();
 const modifiersController = new ModifiersController();
 
-modifiersRouter.use(requireAuth, authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]));
+modifiersRouter.use(requireAuth);
 
-modifiersRouter.post("/", validateRequest(createModifierSchema), asyncHandler(modifiersController.createModifier));
-modifiersRouter.get("/", asyncHandler(modifiersController.getModifiers));
-modifiersRouter.patch("/:id", validateRequest(updateModifierSchema), asyncHandler(modifiersController.updateModifier));
-modifiersRouter.delete("/:id", validateRequest(modifierParamIdSchema), asyncHandler(modifiersController.deleteModifier));
+modifiersRouter.post("/", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]), validateRequest(createModifierSchema), asyncHandler(modifiersController.createModifier));
+modifiersRouter.get("/", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN, USER_ROLES.CASHIER]), asyncHandler(modifiersController.getModifiers));
+modifiersRouter.patch("/:id", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]), validateRequest(updateModifierSchema), asyncHandler(modifiersController.updateModifier));
+modifiersRouter.delete("/:id", authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]), validateRequest(modifierParamIdSchema), asyncHandler(modifiersController.deleteModifier));

@@ -6,6 +6,7 @@ const shopSettingSchema = new Schema(
     ...baseFields,
     shopName: { type: String, required: true },
     currency: { type: String, default: "INR" },
+    currencyLocked: { type: Boolean, default: false },
     timezone: { type: String, default: "Asia/Kolkata" },
     taxRate: { type: Number, default: 0 },
     receiptFooter: { type: String, default: "Thank you for visiting" },

@@ -12,6 +12,8 @@ const printerSettingSchema = new Schema(
     paperWidth: { type: Number, enum: [58, 80], default: 80 },
     autoPrint: { type: Boolean, default: true },
     copies: { type: Number, default: 1 },
+    cutMode: { type: String, enum: ["none", "partial", "full"], default: "partial" },
+    feedBeforeCutLines: { type: Number, min: 0, max: 10, default: 3 },
     isActive: { type: Boolean, default: true }
   },
   schemaOptions

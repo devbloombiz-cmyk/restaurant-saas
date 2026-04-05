@@ -11,6 +11,11 @@ export class AuthController {
     sendSuccess(res, "Login successful", result);
   };
 
+  loginWithCredentials = async (req: Request, res: Response): Promise<void> => {
+    const result = await this.authService.loginWithCredentials(req.body);
+    sendSuccess(res, "Login successful", result);
+  };
+
   registerShopAdmin = async (req: Request, res: Response): Promise<void> => {
     const result = await this.authService.registerShopAdmin(req.body);
     sendSuccess(res, "Shop admin registered successfully", result, 201);
@@ -32,6 +37,15 @@ export class AuthController {
 
     const result = await this.authService.profile(req.context);
     sendSuccess(res, "Profile fetched successfully", result);
+  };
+
+  session = async (req: Request, res: Response): Promise<void> => {
+    if (!req.context) {
+      throw new ApiError(401, "Missing request context");
+    }
+
+    const result = await this.authService.session(req.context);
+    sendSuccess(res, "Session fetched successfully", result);
   };
 
   refreshToken = async (req: Request, res: Response): Promise<void> => {

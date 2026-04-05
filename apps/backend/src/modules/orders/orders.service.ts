@@ -2,6 +2,7 @@ import { ApiError } from "@/utils/ApiError";
 import type { RequestContext } from "@/types/api";
 import { OrdersRepository } from "@/modules/orders/orders.repository";
 import { AuditLogService } from "@/services/auditLog.service";
+import { MenuItemModel } from "@/models/menuItem.model";
 
 function calculateOrderTotal(items: Array<Record<string, unknown>>): number {
   return items.reduce((total, item) => {
@@ -16,6 +17,10 @@ function calculateOrderTotal(items: Array<Record<string, unknown>>): number {
   }, 0);
 }
 
+function roundMoney(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
 export class OrdersService {
   private readonly ordersRepository = new OrdersRepository();
   private readonly auditLogService = new AuditLogService();
@@ -24,7 +29,26 @@ export class OrdersService {
     const currentCount = await this.ordersRepository.countOrders(context.tenantId, context.shopId);
     const orderNumber = `ORD-${1001 + currentCount}`;
     const items = body.items as Array<Record<string, unknown>>;
-    const total = calculateOrderTotal(items);
+    const total = roundMoney(calculateOrderTotal(items));
+
+    for (const line of items) {
+      const itemId = String(line.itemId ?? "");
+      const qty = Number(line.qty ?? 0);
+
+      if (!itemId || qty <= 0) {
+        throw new ApiError(400, "Invalid order items");
+      }
+
+      const menuItem = await MenuItemModel.findOne({ _id: itemId, tenantId: context.tenantId, shopId: context.shopId });
+
+      if (!menuItem) {
+        throw new ApiError(404, "Menu item not found for order");
+      }
+
+      if (typeof menuItem.stockQty === "number" && menuItem.stockQty < qty) {
+        throw new ApiError(400, `Insufficient stock for ${menuItem.name}`);
+      }
+    }
 
     const order = await this.ordersRepository.create({
       tenantId: context.tenantId,
@@ -45,6 +69,22 @@ export class OrdersService {
       module: "orders",
       metadata: { orderId: order.id, orderNumber: order.orderNumber, total: order.total }
     });
+
+    for (const line of items) {
+      const itemId = String(line.itemId ?? "");
+      const qty = Number(line.qty ?? 0);
+
+      const menuItem = await MenuItemModel.findOne({ _id: itemId, tenantId: context.tenantId, shopId: context.shopId });
+
+      if (!menuItem) {
+        continue;
+      }
+
+      const nextQty = Math.max(0, Number(menuItem.stockQty ?? 0) - qty);
+      menuItem.stockQty = nextQty;
+      menuItem.isAvailable = nextQty > 0 && menuItem.isAvailable;
+      await menuItem.save();
+    }
 
     return order;
   }

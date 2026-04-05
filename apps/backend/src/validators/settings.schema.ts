@@ -4,7 +4,8 @@ export const updateShopSettingsSchema = z.object({
   body: z
     .object({
       shopName: z.string().min(2).optional(),
-      currency: z.string().min(2).optional(),
+      currency: z.enum(["INR", "GBP", "USD", "EUR"]).optional(),
+      currencyLocked: z.boolean().optional(),
       timezone: z.string().min(2).optional(),
       taxRate: z.number().min(0).optional(),
       receiptFooter: z.string().optional(),

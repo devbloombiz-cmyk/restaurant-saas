@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/appStore";
 import { useToastStore } from "@/store/toastStore";
 import { SessionTimeoutModal } from "@/components/common/SessionTimeoutModal";
@@ -8,6 +9,7 @@ import { isTokenNearExpiry } from "@/utils/token";
 const SESSION_IDLE_TIMEOUT_MS = 15 * 60 * 1000;
 
 export function SessionSecurityManager() {
+  const navigate = useNavigate();
   const resetSession = useAppStore((state) => state.resetSession);
   const pushToast = useToastStore((state) => state.pushToast);
   const [showTimeoutModal, setShowTimeoutModal] = useState(false);
@@ -17,8 +19,8 @@ export function SessionSecurityManager() {
 
   function performLogout(): void {
     resetSession();
-    localStorage.removeItem("refreshToken");
     setShowTimeoutModal(false);
+    navigate("/login", { replace: true });
     pushToast({ type: "info", message: "You have been logged out." });
   }
 

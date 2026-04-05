@@ -27,8 +27,19 @@ export type MenuItem = {
   description: string;
   modifierEnabled: boolean;
   isAvailable: boolean;
+  stockQty: number;
+  lowStockThreshold: number;
   image: string;
   sortOrder: number;
+};
+
+export type InventoryItem = {
+  _id: string;
+  categoryId: string;
+  name: string;
+  isAvailable: boolean;
+  stockQty: number;
+  lowStockThreshold: number;
 };
 
 export type Modifier = {
@@ -70,6 +81,42 @@ export type DailyReport = {
   pendingTotal: number;
 };
 
+export type ReportOverview = {
+  range: {
+    from: string;
+    to: string;
+  };
+  summary: {
+    totalOrders: number;
+    totalSales: number;
+    avgOrderValue: number;
+  };
+  paymentBreakdown: Array<{
+    paymentMode: string;
+    totalOrders: number;
+    totalAmount: number;
+  }>;
+  trend: Array<{
+    date: string;
+    totalOrders: number;
+    totalSales: number;
+  }>;
+  orders: {
+    items: Array<{
+      _id: string;
+      orderNumber: string;
+      paymentMode: string;
+      total: number;
+      status: string;
+      createdAt: string;
+      orderType: string;
+    }>;
+    total: number;
+    page: number;
+    limit: number;
+  };
+};
+
 export type PrinterSettings = {
   _id?: string;
   printerName: string;
@@ -80,6 +127,8 @@ export type PrinterSettings = {
   paperWidth: 58 | 80;
   autoPrint: boolean;
   copies: number;
+  cutMode: "none" | "partial" | "full";
+  feedBeforeCutLines: number;
   isActive: boolean;
 };
 
@@ -88,6 +137,8 @@ export type KotPayload = {
   orderNumber: string;
   copies: number;
   paperWidth: number;
+  cutMode?: "none" | "partial" | "full";
+  feedBeforeCutLines?: number;
   html: string;
 };
 
@@ -112,6 +163,7 @@ export type ShopSettings = {
   _id?: string;
   shopName: string;
   currency: string;
+  currencyLocked?: boolean;
   timezone: string;
   taxRate: number;
   receiptFooter: string;

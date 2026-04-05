@@ -9,3 +9,4 @@ const reportsController = new ReportsController();
 
 reportsRouter.use(requireAuth, authorize([USER_ROLES.SUPER_ADMIN, USER_ROLES.SHOP_ADMIN]));
 reportsRouter.get("/daily", asyncHandler(reportsController.daily));
+reportsRouter.get("/overview", asyncHandler(reportsController.overview));

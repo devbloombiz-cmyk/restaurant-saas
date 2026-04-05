@@ -17,6 +17,8 @@ export const updatePrinterSettingsSchema = z.object({
       paperWidth: z.union([z.literal(58), z.literal(80)]).optional(),
       autoPrint: z.boolean().optional(),
       copies: z.number().int().positive().optional(),
+      cutMode: z.enum(["none", "partial", "full"]).optional(),
+      feedBeforeCutLines: z.number().int().min(0).max(10).optional(),
       isActive: z.boolean().optional()
     })
     .refine((value) => Object.keys(value).length > 0, "At least one field is required"),

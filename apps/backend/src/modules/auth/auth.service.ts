@@ -8,17 +8,80 @@ import type { RequestContext } from "@/types/api";
 import { AuditLogService } from "@/services/auditLog.service";
 import { tokenBlacklistService } from "@/services/tokenBlacklist.service";
 import { env } from "@/config/env";
+import { ShopSettingModel } from "@/models/shopSetting.model";
+
+const ROLE_PERMISSIONS: Record<string, string[]> = {
+  [USER_ROLES.SUPER_ADMIN]: ["tenant:manage", "shop:manage", "user:manage", "audit:read", "system:diagnostics", "backup:manage"],
+  [USER_ROLES.SHOP_ADMIN]: ["menu:manage", "settings:manage", "reports:read", "cashier:manage", "orders:manage", "diagnostics:read"],
+  [USER_ROLES.CASHIER]: ["pos:checkout", "orders:create", "orders:read", "orders:update"]
+};
 
 export class AuthService {
   private readonly authRepository = new AuthRepository();
   private readonly auditLogService = new AuditLogService();
+
+  private async buildSessionDetails(userId: string): Promise<Record<string, unknown>> {
+    const user = await this.authRepository.findById(userId);
+
+    if (!user || !user.isActive) {
+      throw new ApiError(404, "User not found");
+    }
+
+    const [tenant, activeShop, accessibleShops, shopSettings] = await Promise.all([
+      this.authRepository.findTenantById(user.tenantId),
+      this.authRepository.findShopByTenantAndShopId(user.tenantId, user.shopId),
+      this.authRepository.findShopsByTenant(user.tenantId),
+      ShopSettingModel.findOne({ tenantId: user.tenantId, shopId: user.shopId }).select({ currency: 1 }).lean()
+    ]);
+
+    const activeShopCurrency =
+      typeof shopSettings?.currency === "string" && shopSettings.currency.trim().length > 0
+        ? shopSettings.currency.toUpperCase()
+        : "INR";
+
+    return {
+      user: {
+        userId: user.id,
+        tenantId: user.tenantId,
+        shopId: user.shopId,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive
+      },
+      tenant: tenant
+        ? {
+            tenantId: tenant.id,
+            name: tenant.name,
+            slug: tenant.slug,
+            isActive: tenant.isActive
+          }
+        : null,
+      activeShop: activeShop
+        ? {
+            shopId: activeShop.shopId,
+            name: activeShop.name,
+            location: activeShop.location,
+            isActive: activeShop.isActive,
+            currency: activeShopCurrency
+          }
+        : null,
+      accessibleShops: accessibleShops.map((shop) => ({
+        shopId: shop.shopId,
+        name: shop.name,
+        location: shop.location,
+        isActive: shop.isActive
+      })),
+      permissions: ROLE_PERMISSIONS[user.role] ?? []
+    };
+  }
 
   async login(payload: {
     email: string;
     password: string;
     tenantId: string;
     shopId?: string;
-  }): Promise<{ accessToken: string; refreshToken: string; user: Record<string, unknown> }> {
+  }): Promise<{ accessToken: string; refreshToken: string; user: Record<string, unknown>; session?: Record<string, unknown> }> {
     const user = await this.authRepository.findUserForLogin(payload.email, payload.tenantId, payload.shopId);
 
     if (!user) {
@@ -60,7 +123,60 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role
-      }
+      },
+      session: await this.buildSessionDetails(user.id)
+    };
+  }
+
+  async loginWithCredentials(payload: { email: string; password: string }): Promise<{ accessToken: string; refreshToken: string; user: Record<string, unknown>; session: Record<string, unknown> }> {
+    const candidates = await this.authRepository.findActiveUsersByEmail(payload.email);
+
+    if (candidates.length === 0) {
+      throw new ApiError(401, "Invalid credentials");
+    }
+
+    if (candidates.length > 1) {
+      throw new ApiError(409, "Multiple accounts found for this email. Contact support to complete account disambiguation.");
+    }
+
+    const user = candidates[0];
+    const isPasswordValid = await compareHash(payload.password, user.password);
+
+    if (!isPasswordValid) {
+      throw new ApiError(401, "Invalid credentials");
+    }
+
+    const jwtPayload = {
+      userId: user.id,
+      tenantId: user.tenantId,
+      shopId: user.shopId,
+      role: user.role
+    };
+
+    const tokens = issueTokenPair(jwtPayload);
+    const refreshTokenHash = await hashValue(tokens.refreshToken);
+    await this.authRepository.updateRefreshTokenHash(user.id, refreshTokenHash);
+
+    await this.auditLogService.log({
+      tenantId: user.tenantId,
+      shopId: user.shopId,
+      userId: user.id,
+      action: "login_success_2field",
+      module: "auth",
+      metadata: { email: user.email, role: user.role }
+    });
+
+    return {
+      ...tokens,
+      user: {
+        userId: user.id,
+        tenantId: user.tenantId,
+        shopId: user.shopId,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      },
+      session: await this.buildSessionDetails(user.id)
     };
   }
 
@@ -69,6 +185,7 @@ export class AuthService {
     tenantSlug: string;
     shopName: string;
     shopLocation: string;
+    currency?: "INR" | "GBP" | "USD" | "EUR";
     adminName: string;
     adminEmail: string;
     adminPassword: string;
@@ -110,6 +227,22 @@ export class AuthService {
       role: USER_ROLES.SHOP_ADMIN
     });
 
+    await ShopSettingModel.findOneAndUpdate(
+      { tenantId: tenant.id, shopId: shop.shopId },
+      {
+        $set: {
+          shopName: shop.name,
+          currency: payload.currency ?? "INR",
+          currencyLocked: true
+        },
+        $setOnInsert: {
+          tenantId: tenant.id,
+          shopId: shop.shopId
+        }
+      },
+      { upsert: true, new: true }
+    );
+
     await this.auditLogService.log({
       tenantId: tenant.id,
       shopId: shop.shopId,
@@ -125,6 +258,7 @@ export class AuthService {
       tenantSlug: tenant.slug,
       shopId: shop.shopId,
       shopName: shop.name,
+      currency: payload.currency ?? "INR",
       adminUserId: user.id,
       adminEmail: user.email,
       role: user.role
@@ -169,20 +303,29 @@ export class AuthService {
   }
 
   async profile(context: RequestContext): Promise<Record<string, unknown>> {
-    const user = await this.authRepository.findById(context.userId);
-
-    if (!user || !user.isActive) {
-      throw new ApiError(404, "User not found");
-    }
+    const session = await this.buildSessionDetails(context.userId);
+    const user = session.user as {
+      userId: string;
+      tenantId: string;
+      shopId: string;
+      name: string;
+      email: string;
+      role: string;
+    };
 
     return {
-      userId: user.id,
+      userId: user.userId,
       tenantId: user.tenantId,
       shopId: user.shopId,
       name: user.name,
       email: user.email,
-      role: user.role
+      role: user.role,
+      session
     };
+  }
+
+  async session(context: RequestContext): Promise<Record<string, unknown>> {
+    return this.buildSessionDetails(context.userId);
   }
 
   async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {

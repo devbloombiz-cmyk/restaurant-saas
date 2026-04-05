@@ -2,6 +2,7 @@ import { UserModel } from "@/models/user.model";
 import { TenantModel } from "@/models/tenant.model";
 import { ShopModel } from "@/models/shop.model";
 import type { UserRole } from "@shared/types/roles";
+import { Types } from "mongoose";
 
 export class AuthRepository {
   async findUserForLogin(email: string, tenantId: string, shopId?: string) {
@@ -19,8 +20,31 @@ export class AuthRepository {
     return UserModel.findById(userId);
   }
 
+  async findActiveUsersByEmail(email: string) {
+    return UserModel.find({
+      email: email.toLowerCase(),
+      isActive: true
+    });
+  }
+
   async findTenantBySlug(slug: string) {
     return TenantModel.findOne({ slug: slug.toLowerCase() });
+  }
+
+  async findTenantById(tenantId: string) {
+    if (!Types.ObjectId.isValid(tenantId)) {
+      return TenantModel.findOne({ slug: tenantId.toLowerCase() });
+    }
+
+    return TenantModel.findById(tenantId);
+  }
+
+  async findShopByTenantAndShopId(tenantId: string, shopId: string) {
+    return ShopModel.findOne({ tenantId, shopId, isActive: true });
+  }
+
+  async findShopsByTenant(tenantId: string) {
+    return ShopModel.find({ tenantId, isActive: true }).sort({ createdAt: -1 });
   }
 
   async createTenant(payload: { name: string; slug: string }) {

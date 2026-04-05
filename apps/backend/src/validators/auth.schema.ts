@@ -13,6 +13,23 @@ export const loginSchema = z.object({
   query: z.object({}).optional()
 });
 
+export const loginCredentialsSchema = z.object({
+  body: z
+    .object({
+      email: z.string().email(),
+      password: z.string().min(8)
+    })
+    .strict(),
+  params: z.object({}).optional(),
+  query: z.object({}).optional()
+});
+
+export const sessionSchema = z.object({
+  body: z.object({}).optional(),
+  params: z.object({}).optional(),
+  query: z.object({}).optional()
+});
+
 export const registerShopAdminSchema = z.object({
   body: z
     .object({
@@ -20,6 +37,7 @@ export const registerShopAdminSchema = z.object({
       tenantSlug: z.string().min(2).regex(/^[a-z0-9-]+$/),
       shopName: z.string().min(2),
       shopLocation: z.string().min(2),
+      currency: z.enum(["INR", "GBP", "USD", "EUR"]).optional(),
       adminName: z.string().min(2),
       adminEmail: z.string().email(),
       adminPassword: z.string().min(8)

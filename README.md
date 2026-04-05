@@ -58,6 +58,7 @@ restaurant-saas/
 - Phase 7 and 8 enterprise stability: `docs/phase-7-8-enterprise-stability.md`
 - Complete Postman E2E testing guide: `docs/postman-e2e-testing-guide.md`
 - Postman environment template: `docs/postman-environment-template.json`
+- Local login and role-based user flow: `docs/local-login-role-flow.md`
 - Installation command reference: `scripts/install-commands.md`
 - PM2 config: `scripts/pm2/ecosystem.config.cjs`
 - Nginx sample config: `scripts/nginx/restaurant-saas.conf`

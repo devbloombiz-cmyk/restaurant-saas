@@ -2,6 +2,7 @@ import { SettingsRepository } from "@/modules/settings/settings.repository";
 import type { RequestContext } from "@/types/api";
 import { AuditLogService } from "@/services/auditLog.service";
 import { cacheService } from "@/services/cache.service";
+import { ApiError } from "@/utils/ApiError";
 
 export class SettingsService {
   private readonly settingsRepository = new SettingsRepository();
@@ -21,6 +22,7 @@ export class SettingsService {
       const fallback = {
         shopName: context.shopId,
         currency: "INR",
+        currencyLocked: false,
         timezone: "Asia/Kolkata",
         taxRate: 0,
         receiptFooter: "Thank you for visiting",
@@ -38,6 +40,12 @@ export class SettingsService {
   }
 
   async updateShopSettings(context: RequestContext, payload: Record<string, unknown>) {
+    const existing = await this.settingsRepository.getShopSettings(context.tenantId, context.shopId);
+
+    if (existing?.currencyLocked && typeof payload.currency === "string" && payload.currency !== existing.currency) {
+      throw new ApiError(400, "Currency is locked for this shop and cannot be changed");
+    }
+
     const settings = await this.settingsRepository.upsertShopSettings(context.tenantId, context.shopId, payload);
 
     await this.auditLogService.log({

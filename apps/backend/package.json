@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "dev:nodemon": "nodemon --watch src --ext ts --exec \"tsx src/server.ts\"",
     "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "start": "node dist/server.js",
     "lint": "eslint src --ext .ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "logs:clear": "node scripts/clear-logs.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

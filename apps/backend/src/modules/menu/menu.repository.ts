@@ -31,6 +31,8 @@ export class MenuRepository {
     description: string;
     modifierEnabled: boolean;
     isAvailable: boolean;
+    stockQty: number;
+    lowStockThreshold: number;
     image: string;
     sortOrder: number;
   }) {
@@ -39,15 +41,26 @@ export class MenuRepository {
 
   async findItems(tenantId: string, shopId: string) {
     return MenuItemModel.find({ tenantId, shopId })
-      .select({ categoryId: 1, name: 1, price: 1, description: 1, modifierEnabled: 1, isAvailable: 1, image: 1, sortOrder: 1, createdAt: 1 })
+      .select({ categoryId: 1, name: 1, price: 1, description: 1, modifierEnabled: 1, isAvailable: 1, stockQty: 1, lowStockThreshold: 1, image: 1, sortOrder: 1, createdAt: 1 })
       .sort({ sortOrder: 1, name: 1 })
       .lean();
   }
 
   async findItemById(id: string, tenantId: string, shopId: string) {
     return MenuItemModel.findOne({ _id: id, tenantId, shopId })
-      .select({ categoryId: 1, name: 1, price: 1, description: 1, modifierEnabled: 1, isAvailable: 1, image: 1, sortOrder: 1, createdAt: 1 })
+      .select({ categoryId: 1, name: 1, price: 1, description: 1, modifierEnabled: 1, isAvailable: 1, stockQty: 1, lowStockThreshold: 1, image: 1, sortOrder: 1, createdAt: 1 })
       .lean();
+  }
+
+  async findInventoryItems(tenantId: string, shopId: string) {
+    return MenuItemModel.find({ tenantId, shopId })
+      .select({ categoryId: 1, name: 1, isAvailable: 1, stockQty: 1, lowStockThreshold: 1, createdAt: 1 })
+      .sort({ name: 1 })
+      .lean();
+  }
+
+  async updateInventoryItem(id: string, tenantId: string, shopId: string, payload: { stockQty?: number; lowStockThreshold?: number; isAvailable?: boolean }) {
+    return MenuItemModel.findOneAndUpdate({ _id: id, tenantId, shopId }, payload, { new: true });
   }
 
   async updateItem(id: string, tenantId: string, shopId: string, payload: Record<string, unknown>) {
